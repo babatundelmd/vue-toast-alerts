@@ -1,0 +1,139 @@
+/**
+ * Where a toast is anchored on screen.
+ *
+ * `center` floats the toast in the middle of the viewport with a scale/blur
+ * entrance — use it for messages that should interrupt, not just inform.
+ */
+export type ToastPosition =
+  | 'top-right'
+  | 'top-left'
+  | 'top-center'
+  | 'bottom-right'
+  | 'bottom-left'
+  | 'bottom-center'
+  | 'center';
+
+/** The visual state a toast represents. */
+export type ToastType = 'success' | 'error' | 'warning' | 'info' | 'pending';
+
+/** How aggressively the toast corners are rounded. */
+export type ToastRadius = 'soft' | 'round' | 'pill';
+
+/** Why a toast left the screen. */
+export type ToastDismissReason =
+  | 'timeout'
+  | 'click'
+  | 'close-button'
+  | 'backdrop'
+  | 'programmatic'
+  /** Evicted because `maxToasts` was reached for its position. */
+  | 'limit';
+
+/**
+ * Something a toast did, handed to `onEvent`. The library reports what
+ * happened and nothing more — it collects and transmits nothing itself.
+ */
+export interface ToastEvent {
+  readonly event: 'shown' | 'dismissed';
+  readonly id: number;
+  readonly type: ToastType;
+  readonly title: string;
+  readonly message: string;
+  readonly position: ToastPosition;
+
+  /** `Date.now()` when the event happened. */
+  readonly at: number;
+
+  /** `dismissed` only. */
+  readonly reason?: ToastDismissReason;
+
+  /** Milliseconds on screen. `dismissed` only. */
+  readonly visibleFor?: number;
+}
+
+/** Browser only — never fires during server rendering. */
+export type ToastEventHandler = (event: ToastEvent) => void;
+
+export interface ToastAlertsConfig {
+  /** Milliseconds before the toast auto-dismisses. Defaults to 5000. */
+  timeout?: number;
+
+  /** Dismiss the toast when its body is clicked. Defaults to true. */
+  clickToClose?: boolean;
+
+  /** Keep the toast on screen until it is dismissed explicitly. */
+  disableTimeout?: boolean;
+
+  /** Screen anchor. Can be set globally or per toast. */
+  position?: ToastPosition;
+
+  /** Render the close (×) button. Defaults to true. */
+  showCloseButton?: boolean;
+
+  /** Freeze the dismiss timer while the pointer is over the toast. Defaults to true. */
+  pauseOnHover?: boolean;
+
+  /** Draw a thin progress bar tracking the remaining timeout. Defaults to false. */
+  showProgress?: boolean;
+
+  /** Corner rounding preset. Defaults to `round`. */
+  radius?: ToastRadius;
+
+  /** Dim and blur the page behind a `center` toast. Defaults to true. */
+  backdrop?: boolean;
+
+  /** Maximum simultaneous toasts per position. Oldest are dropped first. Defaults to 5. */
+  maxToasts?: number;
+
+  /** Overrides the heading. Falls back to a sensible default per type. */
+  title?: string;
+
+  /** Politeness of the live region announcement. Defaults to `polite`. */
+  ariaLive?: 'polite' | 'assertive';
+
+  /** Called when a toast is shown or dismissed. Forward it to your analytics. */
+  onEvent?: ToastEventHandler;
+}
+
+/** Fully resolved configuration — every option has a value. */
+export type ResolvedToastConfig = Required<
+  Omit<ToastAlertsConfig, 'title' | 'onEvent'>
+> &
+  Pick<ToastAlertsConfig, 'title' | 'onEvent'>;
+
+/** One live toast. Immutable — the store replaces it rather than mutating it. */
+export interface Toast {
+  readonly id: number;
+  readonly type: ToastType;
+  readonly title: string;
+  readonly message: string;
+  readonly config: ResolvedToastConfig;
+  /** True once the exit animation has started. */
+  readonly leaving: boolean;
+  readonly createdAt: number;
+}
+
+export const TOAST_ALERTS_DEFAULTS: ResolvedToastConfig = {
+  timeout: 5000,
+  clickToClose: true,
+  disableTimeout: false,
+  position: 'top-right',
+  showCloseButton: true,
+  pauseOnHover: true,
+  showProgress: false,
+  radius: 'round',
+  backdrop: true,
+  maxToasts: 5,
+  ariaLive: 'polite',
+};
+
+/** How long the exit animation runs before the toast leaves the DOM. */
+export const TOAST_EXIT_DURATION = 260;
+
+export const DEFAULT_TITLES: Record<ToastType, string> = {
+  success: 'Success',
+  error: 'Error',
+  warning: 'Warning',
+  info: 'Information',
+  pending: 'Pending',
+};

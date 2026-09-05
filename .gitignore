@@ -1,0 +1,10 @@
+node_modules
+dist
+*.local
+.DS_Store
+.vite
+coverage
+docs-dist
+test-results
+playwright-report
+.claude

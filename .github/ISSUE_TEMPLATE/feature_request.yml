@@ -1,0 +1,22 @@
+name: Feature request
+description: Suggest something the library should do.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What are you trying to do that the library makes hard?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you have in mind
+      description: An API sketch is welcome but not required.
+  - type: checkboxes
+    id: parity
+    attributes:
+      label: Parity
+      options:
+        - label: This exists in ngx-toast-alerts and is missing here

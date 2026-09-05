@@ -1,0 +1,525 @@
+/*
+ * vue-toast-alerts — every token is read as `var(--vue-toast-x, <default>)`
+ * and never declared, so a `:root` rule in the host app always wins.
+ */
+
+.vue-toast-root {
+  --_surface: var(--vue-toast-surface, #ffffff);
+  --_title: var(--vue-toast-title-color, #0d1117);
+  --_message: var(--vue-toast-message-color, #6b7280);
+  --_close: var(--vue-toast-close-color, #9aa1ad);
+  --_close-hover-bg: var(--vue-toast-close-hover-bg, rgba(13, 17, 23, .06));
+  --_radius: var(--vue-toast-radius, 20px);
+  --_icon-radius: var(--vue-toast-icon-radius, 14px);
+  --_icon-size: var(--vue-toast-icon-size, 44px);
+  --_width: var(--vue-toast-width, 400px);
+  --_gap: var(--vue-toast-gap, 14px);
+  --_offset: var(--vue-toast-offset, 24px);
+  --_padding: var(--vue-toast-padding, 14px 16px);
+  --_success: var(--vue-toast-success, #34c88a);
+  --_error: var(--vue-toast-error, #e0796d);
+  --_warning: var(--vue-toast-warning, #efb265);
+  --_info: var(--vue-toast-info, #9aa2ae);
+  --_pending: var(--vue-toast-pending, #8fa2f5);
+  --_glyph: var(--vue-toast-icon-glyph, #ffffff);
+  --_shadow: var(--vue-toast-shadow, 0 1px 2px rgba(13, 17, 23, .04), 0 12px 32px -12px rgba(13, 17, 23, .16));
+  --_glow: var(--vue-toast-glow-strength, 55%);
+  --_backdrop: var(--vue-toast-backdrop-color, rgba(13, 17, 23, .32));
+  --_backdrop-blur: var(--vue-toast-backdrop-blur, 3px);
+  --_enter: var(--vue-toast-enter-duration, .46s);
+  --_exit: var(--vue-toast-exit-duration, .26s);
+  --_spring: var(--vue-toast-spring, cubic-bezier(.22, 1.15, .36, 1));
+  --_ease: var(--vue-toast-ease-out, cubic-bezier(.4, 0, .2, 1));
+  --_z: var(--vue-toast-z-index, 9999);
+  --_font: var(--vue-toast-font, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif);
+  display: block;
+}
+
+@media (prefers-color-scheme: dark) {
+  .vue-toast-root {
+    --_surface: var(--vue-toast-surface, #171a21);
+    --_title: var(--vue-toast-title-color, #f3f5f8);
+    --_message: var(--vue-toast-message-color, #9aa3b2);
+    --_close: var(--vue-toast-close-color, #7d8797);
+    --_close-hover-bg: var(--vue-toast-close-hover-bg, rgba(255, 255, 255, .08));
+    --_shadow: var(--vue-toast-shadow, 0 1px 2px rgba(0, 0, 0, .4), 0 12px 32px -12px rgba(0, 0, 0, .6));
+    --_backdrop: var(--vue-toast-backdrop-color, rgba(0, 0, 0, .5));
+  }
+}
+
+.vue-toast-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.vue-toast-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--_z) - 1);
+  background: var(--_backdrop);
+  backdrop-filter: blur(var(--_backdrop-blur));
+  -webkit-backdrop-filter: blur(var(--_backdrop-blur));
+  animation: vue-toast-backdrop-in var(--_exit) var(--_ease) both;
+}
+
+.vue-toast-container {
+  position: fixed;
+  z-index: var(--_z);
+  display: flex;
+  flex-direction: column;
+  gap: var(--_gap);
+  width: min(var(--_width), 100vw - var(--_offset) * 2);
+  pointer-events: none;
+}
+
+.vue-toast-container[data-position=top-right] {
+  top: var(--_offset);
+  right: var(--_offset);
+}
+
+.vue-toast-container[data-position=top-left] {
+  top: var(--_offset);
+  left: var(--_offset);
+}
+
+.vue-toast-container[data-position=top-center] {
+  top: var(--_offset);
+  left: 50%;
+  transform: translate(-50%);
+}
+
+.vue-toast-container[data-position=bottom-right] {
+  right: var(--_offset);
+  bottom: var(--_offset);
+  flex-direction: column-reverse;
+}
+
+.vue-toast-container[data-position=bottom-left] {
+  bottom: var(--_offset);
+  left: var(--_offset);
+  flex-direction: column-reverse;
+}
+
+.vue-toast-container[data-position=bottom-center] {
+  bottom: var(--_offset);
+  left: 50%;
+  transform: translate(-50%);
+  flex-direction: column-reverse;
+}
+
+.vue-toast-container[data-position=center] {
+  inset: 0;
+  width: auto;
+  align-items: center;
+  justify-content: center;
+  padding: var(--_offset);
+}
+
+.vue-toast {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-sizing: border-box;
+  width: 100%;
+  padding: var(--_padding);
+  overflow: hidden;
+  pointer-events: auto;
+  font-family: var(--_font);
+  background: var(--_surface);
+  border-radius: var(--_radius);
+  box-shadow: var(--_shadow), 0 16px 36px -16px color-mix(in srgb, var(--_accent) var(--_glow), transparent);
+  transition: transform .22s var(--_ease), box-shadow .22s var(--_ease);
+  animation: vue-toast-in var(--_enter) var(--_spring) both;
+}
+
+.vue-toast.is-clickable {
+  cursor: pointer;
+}
+
+.vue-toast:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--_shadow), 0 22px 44px -16px color-mix(in srgb, var(--_accent) 70%, transparent);
+}
+
+.vue-toast[data-radius=soft] {
+  --_radius: var(--vue-toast-radius, 12px);
+  --_icon-radius: var(--vue-toast-icon-radius, 10px);
+}
+
+.vue-toast[data-radius=round] {
+  --_radius: var(--vue-toast-radius, 20px);
+  --_icon-radius: var(--vue-toast-icon-radius, 14px);
+}
+
+.vue-toast[data-radius=pill] {
+  --_radius: var(--vue-toast-radius, 999px);
+  --_icon-radius: var(--vue-toast-icon-radius, 999px);
+  padding: var(--vue-toast-padding, 12px 18px);
+}
+
+.vue-toast[data-type=success] {
+  --_accent: var(--_success);
+}
+
+.vue-toast[data-type=error] {
+  --_accent: var(--_error);
+}
+
+.vue-toast[data-type=warning] {
+  --_accent: var(--_warning);
+}
+
+.vue-toast[data-type=info] {
+  --_accent: var(--_info);
+}
+
+.vue-toast[data-type=pending] {
+  --_accent: var(--_pending);
+}
+
+.vue-toast__icon {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: var(--_icon-size);
+  height: var(--_icon-size);
+  color: var(--_glyph);
+  background: var(--_accent);
+  border-radius: var(--_icon-radius);
+}
+
+.vue-toast__icon svg {
+  width: 60%;
+  height: 60%;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+.vue-toast__spinner {
+  animation: vue-toast-spin .9s linear infinite;
+}
+
+.vue-toast__body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.vue-toast__title {
+  margin: 0;
+  color: var(--_title);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -.01em;
+}
+
+.vue-toast__message {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--_message);
+  font-size: 14px;
+  font-weight: 450;
+  line-height: 1.4;
+}
+
+.vue-toast__close {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  color: var(--_close);
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color .16s var(--_ease), background-color .16s var(--_ease);
+}
+
+.vue-toast__close svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+
+.vue-toast__close:hover {
+  color: var(--_accent);
+  background: var(--_close-hover-bg);
+}
+
+.vue-toast__close:focus-visible {
+  outline: 2px solid var(--_accent);
+  outline-offset: 2px;
+}
+
+.vue-toast__progress {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: var(--_accent);
+  transform-origin: left center;
+  animation: vue-toast-progress linear forwards;
+}
+
+.vue-toast:hover .vue-toast__progress {
+  animation-play-state: paused;
+}
+
+@keyframes vue-toast-in {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -10px, 0) scale(.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes vue-toast-out {
+  0% {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translate3d(0, -8px, 0) scale(.96);
+  }
+}
+
+@keyframes vue-toast-in-right {
+  0% {
+    opacity: 0;
+    transform: translate3d(120%, 0, 0) scale(.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes vue-toast-out-right {
+  0% {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translate3d(120%, 0, 0) scale(.96);
+  }
+}
+
+@keyframes vue-toast-in-left {
+  0% {
+    opacity: 0;
+    transform: translate3d(-120%, 0, 0) scale(.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes vue-toast-out-left {
+  0% {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translate3d(-120%, 0, 0) scale(.96);
+  }
+}
+
+@keyframes vue-toast-in-up {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 120%, 0) scale(.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes vue-toast-out-down {
+  0% {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translate3d(0, 120%, 0) scale(.96);
+  }
+}
+
+@keyframes vue-toast-center-in {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 16px, 0) scale(.84);
+    filter: blur(12px);
+  }
+  55% {
+    opacity: 1;
+    transform: translate3d(0, -4px, 0) scale(1.03);
+    filter: blur(0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+
+@keyframes vue-toast-center-out {
+  0% {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+  to {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0) scale(.9);
+    filter: blur(10px);
+  }
+}
+
+@keyframes vue-toast-backdrop-in {
+  0% {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes vue-toast-fade-in {
+  0% {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes vue-toast-fade-out {
+  0% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes vue-toast-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes vue-toast-progress {
+  0% {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+.vue-toast[data-position=top-right],
+
+.vue-toast[data-position=bottom-right] {
+  animation-name: vue-toast-in-right;
+}
+
+.vue-toast[data-position=top-right].is-leaving,
+
+.vue-toast[data-position=bottom-right].is-leaving {
+  animation: vue-toast-out-right var(--_exit) var(--_ease) forwards;
+}
+
+.vue-toast[data-position=top-left],
+
+.vue-toast[data-position=bottom-left] {
+  animation-name: vue-toast-in-left;
+}
+
+.vue-toast[data-position=top-left].is-leaving,
+
+.vue-toast[data-position=bottom-left].is-leaving {
+  animation: vue-toast-out-left var(--_exit) var(--_ease) forwards;
+}
+
+.vue-toast[data-position=top-center] {
+  animation-name: vue-toast-in;
+}
+
+.vue-toast[data-position=top-center].is-leaving {
+  animation: vue-toast-out var(--_exit) var(--_ease) forwards;
+}
+
+.vue-toast[data-position=bottom-center] {
+  animation-name: vue-toast-in-up;
+}
+
+.vue-toast[data-position=bottom-center].is-leaving {
+  animation: vue-toast-out-down var(--_exit) var(--_ease) forwards;
+}
+
+.vue-toast[data-position=center] {
+  width: min(var(--_width), 100%);
+  animation-name: vue-toast-center-in;
+}
+
+.vue-toast[data-position=center].is-leaving {
+  animation: vue-toast-center-out var(--_exit) var(--_ease) forwards;
+}
+
+.vue-toast.is-leaving {
+  pointer-events: none;
+}
+
+@media (max-width: 480px) {
+  .vue-toast-root {
+    --_offset: var(--vue-toast-offset, 12px);
+    --_icon-size: var(--vue-toast-icon-size, 40px);
+  }
+  .vue-toast-container:not([data-position=center]) {
+    width: calc(100vw - var(--_offset) * 2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vue-toast[data-position] {
+    animation: vue-toast-fade-in 1ms linear both;
+    transition: none;
+  }
+  .vue-toast[data-position]:hover {
+    transform: none;
+  }
+  .vue-toast[data-position].is-leaving {
+    animation: vue-toast-fade-out 1ms linear forwards;
+  }
+  .vue-toast-backdrop {
+    animation-duration: 1ms;
+  }
+  .vue-toast__spinner {
+    animation-duration: 2.4s;
+  }
+}
