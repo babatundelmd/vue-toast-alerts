@@ -25,7 +25,11 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build:docs
+      # Turns Pages on for the repository if it is not already, instead of
+      # failing with "Get Pages site failed".
       - uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: docs-dist
