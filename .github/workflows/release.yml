@@ -47,7 +47,21 @@ jobs:
 
       - run: npm run verify:package
 
+      # A version published by hand should not turn the tagged release red.
+      - name: Is this version already on npm?
+        id: published
+        run: |
+          NAME="$(node -p "require('./package.json').name")"
+          VERSION="$(node -p "require('./package.json').version")"
+          if npm view "$NAME@$VERSION" version >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "$NAME@$VERSION is already published — skipping the publish step."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Publish to npm
+        if: steps.published.outputs.exists == 'false'
         run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
